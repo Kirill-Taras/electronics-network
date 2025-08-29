@@ -1,0 +1,8 @@
+Django>=3
+djangorestframework>=3.10
+psycopg2-binary
+djangorestframework-simplejwt
+django-filter
+pytest
+pytest-django
+factory-boy
