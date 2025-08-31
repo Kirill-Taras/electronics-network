@@ -1,5 +1,6 @@
 from django.db import models
 from decimal import Decimal
+from django.core.exceptions import ValidationError
 
 
 class NetworkNode(models.Model):
@@ -8,6 +9,22 @@ class NetworkNode(models.Model):
     Каждое звено может иметь поставщика (родительский элемент) и собственные продукты.
     """
 
+    FACTORY = "factory"
+    RETAIL = "retail"
+    ENTREPRENEUR = "entrepreneur"
+
+    NODE_TYPES = [
+        (FACTORY, "Завод"),
+        (RETAIL, "Розничная сеть"),
+        (ENTREPRENEUR, "Индивидуальный предприниматель"),
+    ]
+
+    node_type = models.CharField(
+        max_length=20,
+        choices=NODE_TYPES,
+        default=FACTORY,
+        verbose_name="Тип звена"
+    )
     name = models.CharField(max_length=255, verbose_name="Название")
     email = models.EmailField(verbose_name="Email")
     country = models.CharField(max_length=100, verbose_name="Страна")
@@ -37,12 +54,36 @@ class NetworkNode(models.Model):
         verbose_name="Время создания"
     )
 
+    def clean(self):
+
+        # завод не может иметь поставщика
+        if self.node_type == self.FACTORY and self.supplier is not None:
+            raise ValidationError("У завода не может быть поставщика.")
+        # завод не может иметь задолжности
+        if self.node_type == self.FACTORY and self.debt != 0:
+            raise ValidationError("У завода не может быть задолженности перед поставщиком.")
+        # сам себе быть поставщиком нельзя
+        if self.supplier and self.supplier_id == self.id:
+            raise ValidationError("Поставщик не может быть самим собой.")
+
+    @property
+    def level(self):
+        """
+        Возвращает уровень в иерархии:
+        завод = 0
+        его клиенты = 1
+        клиенты клиентов = 2
+        """
+        if not self.supplier:
+            return 0
+        return self.supplier.level + 1
+
     class Meta:
         verbose_name = "Звено сети"
         verbose_name_plural = "Звенья сети"
 
     def __str__(self):
-        return f"{self.name} ({self.city})"
+        return f"{self.get_node_type_display()} — {self.name}"
 
 
 class Product(models.Model):

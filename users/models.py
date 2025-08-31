@@ -51,8 +51,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=20, blank=True, verbose_name="Телефон")
 
     # флаги для админки и прав
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField("Активен", default=True)
+    is_staff = models.BooleanField("Доступ в админку", default=False)
+    is_superuser = models.BooleanField("Суперпользователь", default=False)
 
     objects = CustomUserManager()
 

@@ -1,0 +1,62 @@
+from rest_framework import serializers
+from .models import NetworkNode, Product
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """Сериализатор продукта (CRUD через ViewSet)."""
+
+    class Meta:
+        model = Product
+        fields = ("id", "name", "model", "release_date", "supplier")
+        read_only_fields = ("id",)
+
+
+class NetworkNodeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор звена сети.
+    - products: вложенный список продуктов (только чтение).
+    - level: вычисляемое поле (глубина в иерархии).
+    - debt: запрет изменения через API — делаем read_only.
+    """
+
+    products = ProductSerializer(many=True, read_only=True)
+    level = serializers.SerializerMethodField(read_only=True)
+    debt = serializers.DecimalField(
+        max_digits=12, decimal_places=2, read_only=True
+    )
+
+    class Meta:
+        model = NetworkNode
+        fields = (
+            "id",
+            "node_type",
+            "name",
+            "email",
+            "country",
+            "city",
+            "street",
+            "house_number",
+            "supplier",
+            "debt",
+            "created_at",
+            "level",
+            "products",
+        )
+        read_only_fields = ("id", "node_type", "created_at", "level", "products", "debt")
+
+    def validate_supplier(self, value):
+        """
+        Проверка:
+        - у завода не может быть поставщика
+        - Нельзя быть своим же поставщиком
+        - Завод не может иметь задолженность
+        """
+        node_type = self.initial_data.get("node_type")
+        debt = self.initial_data.get("debt")
+        if node_type == NetworkNode.FACTORY and value is not None:
+            raise serializers.ValidationError("У завода не может быть поставщика.")
+        if node_type == NetworkNode.FACTORY and debt not in (None, 0, "0", "0.0"):
+            raise serializers.ValidationError("У завода не может быть задолженности перед поставщиком.")
+        if value and self.instance and value.pk == self.instance.pk:
+            raise serializers.ValidationError("Поставщик не может быть самим собой.")
+        return value
