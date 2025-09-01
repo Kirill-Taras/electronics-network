@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -19,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    "drf_yasg",
     'users',
     'network',
 
@@ -85,8 +87,17 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend"
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+        "rest_framework.filters.SearchFilter",
     ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 LANGUAGE_CODE = 'ru-ru'
