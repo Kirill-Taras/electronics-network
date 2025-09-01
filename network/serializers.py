@@ -60,22 +60,24 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ("id", "node_type", "created_at", "level", "products", "debt")
 
-    def validate_supplier(self, value):
-        """
-        Проверка:
-        - у завода не может быть поставщика
-        - Нельзя быть своим же поставщиком
-        - Завод не может иметь задолженность
-        """
+
+    def validate(self, attrs):
         node_type = self.initial_data.get("node_type")
-        debt = self.initial_data.get("debt")
-        if node_type == NetworkNode.FACTORY and value is not None:
-            raise serializers.ValidationError("У завода не может быть поставщика.")
-        if node_type == NetworkNode.FACTORY and debt not in (None, 0, "0", "0.0"):
-            raise serializers.ValidationError("У завода не может быть задолженности перед поставщиком.")
-        if value and self.instance and value.pk == self.instance.pk:
-            raise serializers.ValidationError("Поставщик не может быть самим собой.")
-        return value
+        supplier = self.initial_data.get("supplier")
+        debt = self.initial_data.get("debt", 0)
+
+        # Проверка для завода
+        if node_type == NetworkNode.FACTORY:
+            if supplier is not None:
+                raise serializers.ValidationError({"supplier": "У завода не может быть поставщика."})
+            if debt not in (None, 0, "0", "0.0"):
+                raise serializers.ValidationError({"debt": "У завода не может быть задолженности перед поставщиком."})
+
+        # Проверка: сам себе быть поставщиком нельзя
+        if supplier and self.instance and supplier.pk == self.instance.pk:
+            raise serializers.ValidationError({"supplier": "Поставщик не может быть самим собой."})
+
+        return attrs
 
 
     def get_level(self, obj):
