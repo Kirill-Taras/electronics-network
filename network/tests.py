@@ -1,8 +1,9 @@
-from rest_framework.test import APITestCase
-from rest_framework import status
-from django.urls import reverse
-from .models import NetworkNode, Product
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from .models import NetworkNode, Product
 
 User = get_user_model()
 
@@ -35,7 +36,7 @@ class NetworkNodeAPITest(APITestCase):
             city="Москва",
             street="Тверская",
             house_number="10",
-            supplier=self.factory
+            supplier=self.factory,
         )
 
         # создаём ИП с розницей как поставщиком
@@ -47,7 +48,7 @@ class NetworkNodeAPITest(APITestCase):
             city="Москва",
             street="Молодёжная",
             house_number="5",
-            supplier=self.retail
+            supplier=self.retail,
         )
 
     def test_factory_cannot_have_supplier(self):
@@ -66,13 +67,11 @@ class NetworkNodeAPITest(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
     def test_levels_hierarchy(self):
         """Проверка уровней в иерархии: завод=0, розница=1, ИП=2"""
         self.assertEqual(self.factory.level, 0)
         self.assertEqual(self.retail.level, 1)
         self.assertEqual(self.entrepreneur.level, 2)
-
 
     def test_factory_cannot_have_debt(self):
         """Завод не может иметь задолженность"""
@@ -90,16 +89,12 @@ class NetworkNodeAPITest(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
     def test_supplier_cannot_be_self(self):
         """Нельзя быть своим же поставщиком"""
         url = reverse("node-detail", args=[self.factory.id])
-        data = {
-            "supplier": self.factory.id
-        }
+        data = {"supplier": self.factory.id}
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
 
     def test_can_create_ip_with_supplier(self):
         """ИП может иметь поставщика"""
@@ -170,10 +165,16 @@ class ProductAPITest(APITestCase):
         )
 
         self.product1 = Product.objects.create(
-            name="Телевизор", model="LG123", release_date="2024-01-01", supplier=self.factory
+            name="Телевизор",
+            model="LG123",
+            release_date="2024-01-01",
+            supplier=self.factory,
         )
         self.product2 = Product.objects.create(
-            name="Телефон", model="SamsungA", release_date="2024-02-01", supplier=self.factory
+            name="Телефон",
+            model="SamsungA",
+            release_date="2024-02-01",
+            supplier=self.factory,
         )
 
     def test_create_product(self):
