@@ -99,22 +99,23 @@ class NetworkNodeAPITest(APITestCase):
         }
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    #
-    #     def test_can_create_ip_with_supplier(self):
-    #         """ИП может иметь поставщика"""
-    #         url = reverse("networknode-list")
-    #         data = {
-    #             "node_type": NetworkNode.IP,
-    #             "name": "ИП Иванов",
-    #             "email": "ip@test.com",
-    #             "country": "Россия",
-    #             "city": "Рязань",
-    #             "street": "Молодежная",
-    #             "house_number": "2",
-    #             "supplier": self.factory.id,
-    #         }
-    #         response = self.client.post(url, data)
-    #         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+    def test_can_create_ip_with_supplier(self):
+        """ИП может иметь поставщика"""
+        url = reverse("node-list")
+        data = {
+            "node_type": NetworkNode.ENTREPRENEUR,
+            "name": "ИП Иванов",
+            "email": "ip@test.com",
+            "country": "Россия",
+            "city": "Рязань",
+            "street": "Молодежная",
+            "house_number": "2",
+            "supplier": self.factory.id,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     #
     # class ProductAPITest(APITestCase):
     #     def setUp(self):
