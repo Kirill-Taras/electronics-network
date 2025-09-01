@@ -116,33 +116,68 @@ class NetworkNodeAPITest(APITestCase):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #
-    # class ProductAPITest(APITestCase):
-    #     def setUp(self):
-    #         self.user = User.objects.create_user(
-    #             email="test2@test.com", password="12345", is_staff=True, is_active=True
-    #         )
-    #         self.client.force_authenticate(self.user)
-    #
-    #         self.factory = NetworkNode.objects.create(
-    #             node_type=NetworkNode.FACTORY,
-    #             name="Завод",
-    #             email="factory@test.com",
-    #             country="Россия",
-    #             city="Москва",
-    #             street="Ленина",
-    #             house_number="1",
-    #         )
-    #
-    #     def test_create_product(self):
-    #         """Продукт создаётся нормально"""
-    #         url = reverse("product-list")
-    #         data = {
-    #             "name": "Телевизор",
-    #             "model": "LG123",
-    #             "release_date": "2024-01-01",
-    #             "supplier": self.factory.id,
-    #         }
-    #         response = self.client.post(url, data)
-    #         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_created_at_auto_filled(self):
+        """Время создания заполняется автоматически при создании"""
+        self.assertIsNotNone(self.factory.created_at)
+        self.assertIsNotNone(self.retail.created_at)
+
+    def test_debt_read_only(self):
+        """Поле 'debt' нельзя изменить через API"""
+        url = reverse("node-detail", args=[self.retail.id])
+        data = {"debt": "9999.99"}
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.retail.refresh_from_db()
+        self.assertNotEqual(self.retail.debt, 9999.99)
+
+    def test_filter_by_country(self):
+        """Фильтрация по стране работает"""
+        url = reverse("node-list") + "?country=Россия"
+        response = self.client.get(url)
+        self.assertTrue(all(n["country"] == "Россия" for n in response.data))
+
+    def test_ordering_by_name(self):
+        """Сортировка по имени работает"""
+        url = reverse("node-list") + "?ordering=name"
+        response = self.client.get(url)
+        names = [n["name"] for n in response.data]
+        self.assertEqual(names, sorted(names))
+
+    def test_ordering_by_created_at(self):
+        """Сортировка по дате создания работает"""
+        url = reverse("node-list") + "?ordering=created_at"
+        response = self.client.get(url)
+        dates = [n["created_at"] for n in response.data]
+        self.assertEqual(dates, sorted(dates))
+
+
+class ProductAPITest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="test2@test.com", password="12345", is_staff=True, is_active=True
+        )
+        self.client.force_authenticate(self.user)
+
+        self.factory = NetworkNode.objects.create(
+            node_type=NetworkNode.FACTORY,
+            name="Завод",
+            email="factory@test.com",
+            country="Россия",
+            city="Москва",
+            street="Ленина",
+            house_number="1",
+        )
+
+    def test_create_product(self):
+        """Продукт создаётся удачно"""
+        url = reverse("product-list")
+        data = {
+            "name": "Телевизор",
+            "model": "LG123",
+            "release_date": "2024-01-01",
+            "supplier": self.factory.id,
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
