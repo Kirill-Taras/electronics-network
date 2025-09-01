@@ -74,7 +74,7 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"debt": "У завода не может быть задолженности перед поставщиком."})
 
         # Проверка: сам себе быть поставщиком нельзя
-        if supplier and self.instance and supplier.pk == self.instance.pk:
+        if supplier and self.instance and int(supplier) == self.instance.pk:
             raise serializers.ValidationError({"supplier": "Поставщик не может быть самим собой."})
 
         return attrs

@@ -90,14 +90,15 @@ class NetworkNodeAPITest(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    #     def test_supplier_cannot_be_self(self):
-    #         """Нельзя быть своим же поставщиком"""
-    #         url = reverse("networknode-detail", args=[self.factory.id])
-    #         data = {
-    #             "supplier": self.factory.id
-    #         }
-    #         response = self.client.patch(url, data)
-    #         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_supplier_cannot_be_self(self):
+        """Нельзя быть своим же поставщиком"""
+        url = reverse("node-detail", args=[self.factory.id])
+        data = {
+            "supplier": self.factory.id
+        }
+        response = self.client.patch(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     #
     #     def test_can_create_ip_with_supplier(self):
     #         """ИП может иметь поставщика"""
