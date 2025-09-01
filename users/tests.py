@@ -1,7 +1,8 @@
-from rest_framework.test import APITestCase
-from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+
 from network.models import NetworkNode
 
 User = get_user_model()
@@ -19,19 +20,16 @@ class UserPermissionAPITest(APITestCase):
             email="staff_active@test.com",
             password="12345",
             is_staff=True,
-            is_active=True
+            is_active=True,
         )
         self.inactive_staff = User.objects.create_user(
             email="staff_inactive@test.com",
             password="12345",
             is_staff=True,
-            is_active=False
+            is_active=False,
         )
         self.regular_user = User.objects.create_user(
-            email="user@test.com",
-            password="12345",
-            is_staff=False,
-            is_active=True
+            email="user@test.com", password="12345", is_staff=False, is_active=True
         )
 
         # Создаём объект сети для теста

@@ -1,5 +1,6 @@
 from rest_framework.permissions import BasePermission
 
+
 class IsActiveStaff(BasePermission):
     """
     Разрешает доступ только активным сотрудникам (is_active=True и is_staff=True)

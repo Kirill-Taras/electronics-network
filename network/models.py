@@ -1,6 +1,7 @@
-from django.db import models
 from decimal import Decimal
+
 from django.core.exceptions import ValidationError
+from django.db import models
 
 
 class NetworkNode(models.Model):
@@ -20,10 +21,7 @@ class NetworkNode(models.Model):
     ]
 
     node_type = models.CharField(
-        max_length=20,
-        choices=NODE_TYPES,
-        default=FACTORY,
-        verbose_name="Тип звена"
+        max_length=20, choices=NODE_TYPES, default=FACTORY, verbose_name="Тип звена"
     )
     name = models.CharField(max_length=255, verbose_name="Название")
     email = models.EmailField(verbose_name="Email")
@@ -39,20 +37,17 @@ class NetworkNode(models.Model):
         blank=True,
         related_name="clients",
         verbose_name="Поставщик",
-        help_text="Предыдущее звено в иерархии сети"
+        help_text="Предыдущее звено в иерархии сети",
     )
 
     debt = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=Decimal("0.00"),
-        verbose_name="Задолженность перед поставщиком"
+        verbose_name="Задолженность перед поставщиком",
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Время создания"
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
 
     def clean(self):
 
@@ -61,7 +56,9 @@ class NetworkNode(models.Model):
             raise ValidationError("У завода не может быть поставщика.")
         # завод не может иметь задолжности
         if self.node_type == self.FACTORY and self.debt != 0:
-            raise ValidationError("У завода не может быть задолженности перед поставщиком.")
+            raise ValidationError(
+                "У завода не может быть задолженности перед поставщиком."
+            )
         # сам себе быть поставщиком нельзя
         if self.supplier and self.supplier_id == self.id:
             raise ValidationError("Поставщик не может быть самим собой.")
@@ -99,7 +96,7 @@ class Product(models.Model):
         NetworkNode,
         on_delete=models.CASCADE,
         related_name="products",
-        verbose_name="Поставщик"
+        verbose_name="Поставщик",
     )
 
     class Meta:
