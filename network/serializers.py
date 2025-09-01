@@ -29,7 +29,12 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
     """
 
     products = ProductSerializer(many=True, read_only=True)
-    supplier = SupplierShortSerializer(read_only=True)
+    supplier = serializers.PrimaryKeyRelatedField(
+        queryset=NetworkNode.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    supplier_info = SupplierShortSerializer(source='supplier', read_only=True)
     level = serializers.SerializerMethodField(read_only=True)
     debt = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
@@ -47,6 +52,7 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
             "street",
             "house_number",
             "supplier",
+            "supplier_info",
             "debt",
             "created_at",
             "level",
@@ -70,3 +76,14 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
         if value and self.instance and value.pk == self.instance.pk:
             raise serializers.ValidationError("Поставщик не может быть самим собой.")
         return value
+
+
+    def get_level(self, obj):
+        """
+        Вычисляем уровень в иерархии:
+        - завод (supplier=None) -> 0
+        - если supplier есть -> уровень родителя + 1
+        """
+        if not obj.supplier:
+            return 0
+        return obj.supplier.level + 1
