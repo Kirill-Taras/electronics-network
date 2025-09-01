@@ -2,8 +2,16 @@ from rest_framework import serializers
 from .models import NetworkNode, Product
 
 
+class SupplierShortSerializer(serializers.ModelSerializer):
+    """Краткая информация о поставщике (id, название, email)."""
+
+    class Meta:
+        model = NetworkNode
+        fields = ("id", "name", "email")
+
+
 class ProductSerializer(serializers.ModelSerializer):
-    """Сериализатор продукта (CRUD через ViewSet)."""
+    """Сериализатор продукта."""
 
     class Meta:
         model = Product
@@ -17,9 +25,11 @@ class NetworkNodeSerializer(serializers.ModelSerializer):
     - products: вложенный список продуктов (только чтение).
     - level: вычисляемое поле (глубина в иерархии).
     - debt: запрет изменения через API — делаем read_only.
+    - supplier: вложенный список поставщиков.
     """
 
     products = ProductSerializer(many=True, read_only=True)
+    supplier = SupplierShortSerializer(read_only=True)
     level = serializers.SerializerMethodField(read_only=True)
     debt = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
