@@ -169,6 +169,13 @@ class ProductAPITest(APITestCase):
             house_number="1",
         )
 
+        self.product1 = Product.objects.create(
+            name="Телевизор", model="LG123", release_date="2024-01-01", supplier=self.factory
+        )
+        self.product2 = Product.objects.create(
+            name="Телефон", model="SamsungA", release_date="2024-02-01", supplier=self.factory
+        )
+
     def test_create_product(self):
         """Продукт создаётся удачно"""
         url = reverse("product-list")
@@ -181,3 +188,24 @@ class ProductAPITest(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_filter_by_release_date(self):
+        """Фильтрация по дате выпуска работает"""
+        url = reverse("product-list") + "?release_date=2024-01-01"
+        response = self.client.get(url)
+        self.assertTrue(all(p["release_date"] == "2024-01-01" for p in response.data))
+
+    def test_filter_by_supplier(self):
+        """Фильтрация по поставщику работает"""
+        url = reverse("product-list") + f"?supplier={self.factory.id}"
+        response = self.client.get(url)
+        self.assertTrue(all(p["supplier"] == self.factory.id for p in response.data))
+
+    def test_search_by_name_and_model(self):
+        """Поиск по имени и модели работает"""
+        url = reverse("product-list") + "?search=Телевизор"
+        response = self.client.get(url)
+        self.assertTrue(any("Телевизор" in p["name"] for p in response.data))
+
+        url = reverse("product-list") + "?search=SamsungA"
+        response = self.client.get(url)
+        self.assertTrue(any("SamsungA" in p["model"] for p in response.data))
