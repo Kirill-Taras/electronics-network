@@ -26,6 +26,30 @@ class NetworkNodeAPITest(APITestCase):
             house_number="1",
         )
 
+        # создаём розничную сеть с заводом как поставщиком
+        self.retail = NetworkNode.objects.create(
+            node_type=NetworkNode.RETAIL,
+            name="Розница",
+            email="retail@test.com",
+            country="Россия",
+            city="Москва",
+            street="Тверская",
+            house_number="10",
+            supplier=self.factory
+        )
+
+        # создаём ИП с розницей как поставщиком
+        self.entrepreneur = NetworkNode.objects.create(
+            node_type=NetworkNode.ENTREPRENEUR,
+            name="ИП Петров",
+            email="ip2@test.com",
+            country="Россия",
+            city="Москва",
+            street="Молодёжная",
+            house_number="5",
+            supplier=self.retail
+        )
+
     def test_factory_cannot_have_supplier(self):
         """Завод не может иметь поставщика"""
         url = reverse("node-list")
@@ -41,4 +65,11 @@ class NetworkNodeAPITest(APITestCase):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+    def test_levels_hierarchy(self):
+        """Проверка уровней в иерархии: завод=0, розница=1, ИП=2"""
+        self.assertEqual(self.factory.level, 0)
+        self.assertEqual(self.retail.level, 1)
+        self.assertEqual(self.entrepreneur.level, 2)
 
